@@ -33,15 +33,19 @@ end
 
 def init_game
   $score = 0
+  
   $player = Image.new('assets/playerFrame1.png',
-    width: 30, height: 50, x: 50, y: GROUND_Y - 50)
+                      width: 30, height: 50, x: 50, y: GROUND_Y - 50)
   
   $obstacles = []
-  $obstacles << Image.new('assets/block.png', x: 300, y: GROUND_Y - 30, width: 30, height: 30)
-  $obstacles << Image.new('assets/block.png', x: 1200, y: GROUND_Y - 30, width: 30, height: 30)
-  $obstacles << Image.new('assets/block.png', x: 2500, y: GROUND_Y - 30, width: 30, height: 30)
+  $obstacles << Image.new('assets/block.png',
+                          x: 300, y: GROUND_Y - 30, width: 30, height: 30)
+  $obstacles << Image.new('assets/block.png',
+                          x: 1200, y: GROUND_Y - 30, width: 30, height: 30)
+  $obstacles << Image.new('assets/block.png',
+                          x: 2500, y: GROUND_Y - 30, width: 30, height: 30)
   
-  $holes = [{ x: 500, width: 100 },
+  $holes = [{ x: 500,  width: 100 },
             { x: 1700, width: 150 },
             { x: 2200, width: 120 }]
   
@@ -111,14 +115,14 @@ update do
   if $level_complete || $game_over
     if $wall && $player.x + $player.width >= $wall.x
       $level_complete = true
-      $status_text = Text.new("Game Complete! Score: #{$score}",
-                              x: 200, y: 200, size: 40, color: 'green')
+      $status_text = Text.new("Game Complete! Score: #{$score}", x: 200, y: 200, size: 40, color: 'green')
     end
     next
   end
   
   $player.x -= PLAYER_SPEED if $keys['left'] || $keys['a']
   $player.x += PLAYER_SPEED if $keys['right'] || $keys['d']
+  $player.x = 0 if $player.x < 0  # Blokujemy wychodzenie na lewą stronę
   
   max_offset = $max_offset
   if ($keys['right'] || $keys['d']) && $player.x > 300 && $world_offset < max_offset
@@ -128,19 +132,17 @@ update do
     $obstacles.each { |obs| obs.x -= dx }
     $coins.each { |coin| coin.x -= dx }
     $ground_segments.each { |seg| seg.x -= dx }
-    $holes.each { |h| h[:x] -= dx }
+    $holes.each { |h| h[:x] -= dx } if $holes && $holes.is_a?(Array)
     $world_offset += dx
   end
   
   if $world_offset >= max_offset && !$wall
-    $wall = Rectangle.new(x: Window.width - 20, y: 0, width: 20,
-                           height: Window.height, color: 'gray')
+    $wall = Rectangle.new(x: Window.width - 20, y: 0, width: 20, height: Window.height, color: 'gray')
   end
   
   if $wall && $player.x + $player.width >= $wall.x
     $level_complete = true
-    $status_text = Text.new("Game Complete! Score: #{$score}",
-                            x: 200, y: 200, size: 40, color: 'green')
+    $status_text = Text.new("Game Complete! Score: #{$score}", x: 200, y: 200, size: 40, color: 'green')
     $restart_button = Rectangle.new(x: 350, y: 300, width: 100, height: 50, color: 'blue')
     $restart_text = Text.new("Restart", x: 365, y: 315, size: 20, color: 'white')
     $exit_button = Rectangle.new(x: 350, y: 370, width: 100, height: 50, color: 'red')
@@ -161,8 +163,7 @@ update do
       $game_over = true
       $score = 0
       $score_text.text = "Score: 0"
-      $status_text = Text.new("Game Over! Score: #{$score}",
-                              x: 200, y: 200, size: 40, color: 'red')
+      $status_text = Text.new("Game Over! Score: #{$score}", x: 200, y: 200, size: 40, color: 'red')
       $restart_button = Rectangle.new(x: 350, y: 300, width: 100, height: 50, color: 'blue')
       $restart_text = Text.new("Restart", x: 365, y: 315, size: 20, color: 'white')
       $exit_button = Rectangle.new(x: 350, y: 370, width: 100, height: 50, color: 'red')
@@ -184,8 +185,7 @@ update do
     $game_over = true
     $score = 0
     $score_text.text = "Score: 0"
-    $status_text = Text.new("Game Over! Score: #{$score}",
-                            x: 200, y: 200, size: 40, color: 'red')
+    $status_text = Text.new("Game Over! Score: #{$score}", x: 200, y: 200, size: 40, color: 'red')
     $restart_button = Rectangle.new(x: 350, y: 300, width: 100, height: 50, color: 'blue')
     $restart_text = Text.new("Restart", x: 365, y: 315, size: 20, color: 'white')
     $exit_button = Rectangle.new(x: 350, y: 370, width: 100, height: 50, color: 'red')
@@ -211,7 +211,7 @@ on :mouse_down do |event|
      event.y >= $restart_button.y && event.y <= $restart_button.y + $restart_button.height
     reset_game
   end
-  
+
   if ($level_complete || $game_over) && $exit_button &&
      event.x >= $exit_button.x && event.x <= $exit_button.x + $exit_button.width &&
      event.y >= $exit_button.y && event.y <= $exit_button.y + $exit_button.height
